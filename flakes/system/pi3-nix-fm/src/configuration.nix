@@ -85,7 +85,7 @@ in
   # Bootloader itself comes from the `raspberry-pi-3` profile.
 
   # Old generations keep their kernel + initrd in /boot on the root partition.
-  boot.loader.generic-extlinux-compatible.configurationLimit = 10;
+  boot.loader.generic-extlinux-compatible.configurationLimit = 3;
 
   # Loads the DTB shipped with the running kernel instead of the vendor one.
   # MUST match the kernel choice below. See ../README.md.
@@ -110,8 +110,8 @@ in
 
   # === Hardware ===
 
-  # For proprietary firmware (fix WiFi cards)
-  hardware.enableRedistributableFirmware = true;
+  # Firmware provided by `nixos-hardware` in flake
+  hardware.enableRedistributableFirmware = false;
 
   hardware.raspberry-pi.firmware = {
     # Repopulates the firmware partition on every `nixos-rebuild switch`.
