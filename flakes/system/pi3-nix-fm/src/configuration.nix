@@ -70,12 +70,8 @@ in
 
   # === Build ===
 
-  # Disable building some docs
-  documentation = {
-    nixos.enable = false;
-    man.enable = true;
-    info.enable = false;
-  };
+  # Disable building docs
+  documentation.enable = false;
 
   # === Build ===
 
