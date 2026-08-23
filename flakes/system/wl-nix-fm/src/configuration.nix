@@ -272,7 +272,7 @@ in
 
   # Programs
   programs = {
-
+    steam.enable = true;
   };
 
   # === Global Environment ===

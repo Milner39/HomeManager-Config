@@ -32,12 +32,6 @@
     /*
       The running system and the SD image share everything in
       `./src/configuration.nix` and differ only in the last module.
-
-      They cannot be one config extended with `extendModules`, because
-      `sd-image-aarch64.nix` pulls in `profiles/base.nix`, `sd-image.nix` pulls
-      in `profiles/all-hardware.nix`, and `sd-image.nix` declares
-      `fileSystems."/"` without `mkDefault`. All three are unwanted on the
-      running system.
     */
     mkPi = extraModules: flakeTools.mkNixosConf {
       hostname = "pi3-nix-fm";

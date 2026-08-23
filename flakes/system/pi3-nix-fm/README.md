@@ -35,11 +35,11 @@ builds.
 
 ```sh
 # build the image
-nix build ./flakes/systems/pi3-nix-fm#packages.aarch64-linux.sd-image
+nix build ./flakes/system/pi3-nix-fm#packages.aarch64-linux.sd-image
 
 # deploy to a running board
 nixos-rebuild switch \
-  --flake /etc/nixos/flakes/systems/pi3-nix-fm#default \
+  --flake /etc/nixos/flakes/system/pi3-nix-fm#default \
   --target-host <user>@<ip> --sudo \
   --ask-sudo-password
 ```

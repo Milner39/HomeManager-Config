@@ -84,14 +84,14 @@
         CPT-stub = pkgs.writeShellScriptBin "cisco-packet-tracer" ''
           echo "Cisco Packet Tracer is not installed." >&2
           echo "The build could not find CiscoPacketTracer.deb, so a stub was built instead." >&2
-          echo "See flakes/packages/cisco-packet-tracer/README.md for how to add the installer." >&2
+          echo "See flakes/package/cisco-packet-tracer/README.md for how to add the installer." >&2
           exit 1
         '';
       in {
         "${pname}" = if CPT-deb-present
           then CPT
           else builtins.warn
-            "cisco-packet-tracer: CiscoPacketTracer.deb not found - building a stub package instead. See flakes/packages/cisco-packet-tracer/README.md."
+            "cisco-packet-tracer: CiscoPacketTracer.deb not found - building a stub package instead. See flakes/package/cisco-packet-tracer/README.md."
             CPT-stub;
       }
     );

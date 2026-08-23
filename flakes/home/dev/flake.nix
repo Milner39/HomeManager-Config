@@ -16,7 +16,7 @@
     };
 
     cisco-packet-tracer = {
-      url = "path:../../packages/cisco-packet-tracer";
+      url = "path:../../package/cisco-packet-tracer";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

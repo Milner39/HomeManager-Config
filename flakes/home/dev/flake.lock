@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "path": "../../packages/cisco-packet-tracer",
+        "path": "../../package/cisco-packet-tracer",
         "type": "path"
       },
       "original": {
-        "path": "../../packages/cisco-packet-tracer",
+        "path": "../../package/cisco-packet-tracer",
         "type": "path"
       },
       "parent": []
