@@ -24,8 +24,9 @@
   };
 
   modules.gui = {
-    window-manager.hyprland.enable = true;
     window-manager.niri.enable = true;
+    window-manager.hyprland.enable = true;
+    window-manager.sway.enable = true;
     menu.rofi.enable = true;
     screenshot.custom.enable = true;
   };
