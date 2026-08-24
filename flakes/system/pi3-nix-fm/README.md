@@ -3,6 +3,128 @@
 NixOS on a Raspberry Pi 3 B, built with the `raspberry-pi-3` profile from
 [nixos-hardware](https://github.com/NixOS/nixos-hardware/tree/master/raspberry-pi).
 
+Everything below the [How to use](#how-to-use) section explains *why* this
+configuration is the shape it is. Most of it is load-bearing. The board boots
+to a black screen if the kernel and device tree disagree, and does not boot at
+all if U-Boot is missing, so read the relevant section before changing any of
+those options.
+
+
+## How to use
+
+### Prerequisites
+
+Builds are aarch64 on an x86_64 host, so the build machine needs
+
+```nix
+boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+```
+
+Without it nothing here builds.
+
+### Build the SD image
+
+```sh
+nix build /etc/nixos/flakes/system/pi3-nix-fm#packages.aarch64-linux.sd-image \
+  --out-link ~/pi3-sd-image
+```
+
+The `packages.aarch64-linux` prefix has to be explicit — a bare `#sd-image`
+resolves to `packages.x86_64-linux` on the build host and is not found.
+
+The output is a directory:
+
+```
+~/pi3-sd-image/sd-image/nixos-image-sd-card-<version>-aarch64-linux.img.zst
+```
+
+### Verify the image before flashing
+
+Two things are worth checking, because both failure modes are silent and only
+visible over serial. Read the FAT partition without mounting it:
+
+```sh
+zstd -dc ~/pi3-sd-image/sd-image/*.img.zst | head -c 41943040 > head.img
+fdisk -l head.img
+nix shell nixpkgs#mtools --command mdir  -i head.img@@8388608 ::
+nix shell nixpkgs#mtools --command mtype -i head.img@@8388608 ::/config.txt
+```
+
+`u-boot.bin` must be present and `config.txt` must contain `kernel=u-boot.bin`.
+See [Firmware partition](#firmware-partition) for what goes wrong otherwise.
+
+### Write it to a card
+
+**Identify the device first.** `dd` to the wrong one wipes the disk it lands
+on, with no confirmation and no undo.
+
+```sh
+lsblk -o NAME,SIZE,MODEL,TRAN            # find the card, e.g. mmcblk0 or sdb
+sudo umount /dev/sdX?                    # unmount anything auto-mounted
+zstd -dc ~/pi3-sd-image/sd-image/*.img.zst \
+  | sudo dd of=/dev/sdX bs=4M status=progress conv=fsync
+sync
+```
+
+Write to the whole device (`/dev/sdb`), not a partition (`/dev/sdb1`).
+
+The root partition expands to fill the card on first boot (`sdImage.expandOnBoot`, on by default),
+so a larger card needs no further work.
+
+### Deploy changes to a running board
+
+Build on the laptop and push the closure. 1 GB of RAM and an SD card make
+on-board builds painful, which is also why
+`system.tools.nixos-rebuild.enable = false` in `src/configuration.nix`.
+
+```sh
+# deploy-rs, using flakes/deploy/pi3-nix-fm
+nix run github:serokell/deploy-rs -- /etc/nixos/flakes/deploy/pi3-nix-fm
+```
+
+Or without deploy-rs:
+
+```sh
+nixos-rebuild switch \
+  --flake /etc/nixos/flakes/system/pi3-nix-fm#default \
+  --target-host <user>@<ip> --sudo \
+  --ask-sudo-password
+```
+
+### Watch the space on the card
+
+This is the main constraint. A deploy needs the running closure and the new one resident at 
+the same time, so the card must have room for the *new* paths on top of what is already there, not just for one system.
+
+Measure the image before a deploy rather than guessing:
+
+```sh
+nix path-info -Sh /etc/nixos/flakes/system/pi3-nix-fm#nixosConfigurations.default.config.system.build.toplevel
+```
+
+When a deploy fails for space, on the board:
+
+```sh
+sudo nix-collect-garbage -d               # every generation but the current one
+nix-collect-garbage -d                    # user profile
+nix-store --gc --print-roots | grep -v '^/proc/'
+```
+
+A `deploy-rs` run that got far enough to create a profile generation leaves it as the current generation of
+`/nix/var/nix/profiles/system-profiles/system`, and GC keeps it leaving several GiB pinned that 
+no amount of re-running `nix-collect-garbage` will touch. Clear it
+with
+
+```sh
+sudo nix-env -p /nix/var/nix/profiles/system-profiles/system --delete-generations old
+```
+
+`nix.gc.options = "--delete-older-than 7d"` in `src/configuration.nix` only ages
+out generations. It never collects the garbage a failed deploy leaves behind.
+
+If GC does not free enough, reflashing is the reliable reset: the image contains
+exactly one closure and no old generations.
+
 
 ## Layout
 
@@ -16,36 +138,14 @@ One flake, two `nixosConfigurations` sharing `src/configuration.nix`:
 Two configurations rather than one plus `extendModules`, because the SD-image
 module cannot be shared:
 
-- `sd-image-aarch64.nix` imports `profiles/base.nix`, and `sd-image.nix` imports
-  `profiles/all-hardware.nix`. That is installer-grade bloat — `nixos-install-tools`,
-  ZFS, every hardware module — which has no business living on the Pi's SD card.
+- `sd-image-aarch64.nix` imports `profiles/base.nix`, and `sd-image.nix` sets
+  `hardware.enableAllHardware = true`. That is installer-grade bloat —
+  `nixos-install-tools`, ZFS, every hardware module — which has no business
+  living on the Pi's SD card. See [Installer bloat](#installer-bloat).
 - `sd-image.nix` declares `fileSystems."/"` and `fileSystems."/boot/firmware"`
   **without** `mkDefault`, so it hard-conflicts with anything the running system
   declares.
 
-One flake rather than two, because two lockfiles would drift: the image you flash
-and the closure you later switch to would be built from different nixpkgs. A
-nested flake also could not reach `../../../lib/flake`.
-
-## Building and deploying
-
-Builds are aarch64 on an x86_64 host, so `wl-nix-fm` sets
-`boot.binfmt.emulatedSystems = [ "aarch64-linux" ]`. Without it nothing here
-builds.
-
-```sh
-# build the image
-nix build ./flakes/system/pi3-nix-fm#packages.aarch64-linux.sd-image
-
-# deploy to a running board
-nixos-rebuild switch \
-  --flake /etc/nixos/flakes/system/pi3-nix-fm#default \
-  --target-host <user>@<ip> --sudo \
-  --ask-sudo-password
-```
-
-Build on the laptop and push the closure rather than building on the Pi: 1 GB of
-RAM and an SD card make on-board builds painful.
 
 ## Kernel: mainline, not the vendor kernel
 
@@ -141,16 +241,25 @@ firmware looks for `kernel8.img`, finds nothing, and the board does not boot —
 while a `extlinux.conf` sits unread on the ext4 partition. The
 failure is silent and only visible over serial.
 
-Verify before flashing, reading the FAT partition without mounting it:
 
-```sh
-zstd -dc result/sd-image/*.img.zst | head -c 41943040 > head.img
-fdisk -l head.img                                    # partition 1 offset, ×512
-nix shell nixpkgs#mtools --command mdir  -i head.img@@8388608 ::
-nix shell nixpkgs#mtools --command mtype -i head.img@@8388608 ::/config.txt
+```nix
+hardware.enableAllHardware = lib.mkForce false;
 ```
 
-`u-boot.bin` must be present and `config.txt` must contain `kernel=u-boot.bin`.
+`sd-image.nix` sets `hardware.enableAllHardware = true` for the installer use
+case. On this board that means all of `linux-firmware` — 780 MiB of firmware for
+hardware a Pi 3 does not have, plus every SATA/PATA initrd module. The wireless
+firmware the board actually needs comes from the `raspberry-pi-3` profile's
+`hardware.firmware`.
+
+Without this force, `hardware.enableRedistributableFirmware = false` in
+`src/configuration.nix` fails to evaluate: `all-hardware.nix` defines it as a
+plain `true`, and two unprioritised definitions conflict.
+
+It also removes the cause of the `makeModulesClosure { allowMissing = true; }`
+overlay in `flake.nix`, which exists to tolerate
+`modprobe: FATAL: Module ahci not found` — `ahci` being one of the modules this
+profile asks for.
 
 ## Console log level
 
@@ -186,7 +295,7 @@ Raise this back to 7 when debugging an early boot problem.
 
 - `system.stateVersion = "26.05"` — first install was on 26.05. Do not bump it.
 - `zramSwap.enable` — 1 GB of RAM, and swapping to an SD card is miserable.
-- `boot.loader.generic-extlinux-compatible.configurationLimit = 10` — old
+- `boot.loader.generic-extlinux-compatible.configurationLimit = 3` — old
   generations keep their kernel and initrd in `/boot` on the root partition,
   which adds up quickly on a small card.
 - No `hardware-configuration.nix`: there is nothing to scan. The profile covers

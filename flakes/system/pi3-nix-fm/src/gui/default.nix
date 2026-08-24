@@ -5,7 +5,7 @@
 {
   # === Login ===
 
-  modules.gui.display-manager.sddm.enable = true;
+  modules.gui.display-manager.tuigreet.enable = true;
 
   # === Login ===
 

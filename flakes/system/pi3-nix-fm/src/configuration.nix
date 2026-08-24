@@ -223,4 +223,22 @@ in
 
   # === Global Environment ===
 
+
+  # === Strip Down ===
+
+  # Disable TTS daemon
+  services.speechd.enable = false;
+
+  # Only use 1 font package
+  fonts.enableDefaultPackages = false;
+  fonts.packages = [ pkgs.dejavu_fonts ];
+
+  # Don't store a copy of `<nixpkgs>`
+  nixpkgs.flake.setFlakeRegistry = false;
+  nixpkgs.flake.setNixPath = false;
+
+  # Disable rebuilding locally since this host would OOM anyway
+  system.tools.nixos-rebuild.enable = false;
+
+  # === Strip Down ===
 }

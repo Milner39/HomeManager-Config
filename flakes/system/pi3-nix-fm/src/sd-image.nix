@@ -29,4 +29,11 @@
   imports = [
     "${inputs.nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
   ];
+
+
+  /*
+    `linux-firmware` plus every SATA/PATA initrd module, none of which exist on 
+    a Pi 3 booting from SD.
+  */
+  hardware.enableAllHardware = lib.mkForce false;
 }
