@@ -14,20 +14,26 @@
 /*
   Only imported by the `sd-image` config.
 
-  This brings in `fileSystems` (see `./filesystems.nix`), the bootloader
-  settings, and `system.build.sdImage`.
+  This brings in `fileSystems` (see `./filesystems.nix`) and
+  `system.build.sdImage`.
 
-  It composes with the `raspberry-pi-3` profile without conflict:
-  - It sets `boot.loader.grub.enable = false` and
-    `boot.loader.generic-extlinux-compatible.enable = true`
-  - It sets `sdImage.populateFirmwareCommands` for the generic mainline
-    Pi 2/3/4 path, which `hardware.raspberry-pi.firmware` then `mkForce`s away
-    in favour of its own install script.
-    That is what we want, and it is why `firmware.uboot.enable` has to be on.
+  The generic `sd-image.nix` rather than `sd-image-aarch64.nix`, which wraps it
+  in `profiles/base.nix`, the installation-CD package set: ZFS, testdisk,
+  cryptsetup, tcpdump and ~20 more, none of which belong on this card. Nothing
+  else that file provides is needed here:
+  - `boot.loader.grub.enable = false` and
+    `generic-extlinux-compatible.enable = true` come from the `raspberry-pi-3`
+    profile
+  - its `boot.kernelParams` console entries do too
+  - its `boot.consoleLogLevel = mkDefault 7` is overridden in
+    `./configuration.nix` anyway
+  - its `sdImage.populateFirmwareCommands` is `mkForce`d away by
+    `hardware.raspberry-pi.firmware`, which is why `firmware.uboot.enable` has
+    to be on
 */
 {
   imports = [
-    "${inputs.nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+    "${inputs.nixpkgs}/nixos/modules/installer/sd-card/sd-image.nix"
   ];
 
 
@@ -36,4 +42,15 @@
     a Pi 3 booting from SD.
   */
   hardware.enableAllHardware = lib.mkForce false;
+
+
+  /*
+    The one thing `sd-image-aarch64.nix` provided that is needed.
+    `populateRootCommands` has no default, so it must be set: it writes
+    `extlinux.conf` plus the kernel and initrd into the root partition.
+  */
+  sdImage.populateRootCommands = ''
+    mkdir -p ./files/boot
+    ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
+  '';
 }
