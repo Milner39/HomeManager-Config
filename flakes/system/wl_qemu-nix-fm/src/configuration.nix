@@ -27,6 +27,14 @@ in
 
 
 
+  # === Profiles ===
+
+  modules.profiles.minimal.enable = true;
+
+  # === Profiles ===
+
+
+
   # === Nix ===
 
   nix = {
