@@ -34,6 +34,19 @@ in
   # === Profiles ===
 
 
+  # === Networking ===
+
+  networking.hostName = hostname;
+
+  modules.hardware.networking.networkd.enable = true;
+  # modules.hardware.networking.wireless.iwd.enable = true;  # Wifi not needed
+
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
+
+  # === Networking ===
+
+
 
   # === Nix ===
 
@@ -69,8 +82,6 @@ in
   # === Nix ===
 
 
-
-
   # === Bootloader ===
 
   boot.loader = {
@@ -100,30 +111,6 @@ in
   };
 
   # === Kernel ===
-
-
-  # === Networking ===
-
-  networking = {
-    hostName = hostname;
-
-    # Enable networking
-    networkmanager = {
-      enable = true;
-      package = pkgs.networkmanager;
-
-      # WiFi options
-      wifi = {
-        powersave = false;
-        backend = "iwd";
-      };
-    };
-  };
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-
-  # === Networking ===
 
 
   # === Users ===
