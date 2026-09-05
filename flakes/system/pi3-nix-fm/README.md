@@ -29,7 +29,7 @@ nix build /etc/nixos/flakes/system/pi3-nix-fm#packages.aarch64-linux.sd-image \
   --out-link ~/pi3-sd-image
 ```
 
-The `packages.aarch64-linux` prefix has to be explicit — a bare `#sd-image`
+The `packages.aarch64-linux` prefix has to be explicit - a bare `#sd-image`
 resolves to `packages.x86_64-linux` on the build host and is not found.
 
 The output is a directory:
@@ -139,8 +139,8 @@ Two configurations rather than one plus `extendModules`, because the SD-image
 module cannot be shared:
 
 - `sd-image-aarch64.nix` imports `profiles/base.nix`, and `sd-image.nix` sets
-  `hardware.enableAllHardware = true`. That is installer-grade bloat —
-  `nixos-install-tools`, ZFS, every hardware module — which has no business
+  `hardware.enableAllHardware = true`. That is installer-grade bloat -
+  `nixos-install-tools`, ZFS, every hardware module - which has no business
   living on the Pi's SD card. See [Installer bloat](#installer-bloat).
 - `sd-image.nix` declares `fileSystems."/"` and `fileSystems."/boot/firmware"`
   **without** `mkDefault`, so it hard-conflicts with anything the running system
@@ -158,7 +158,7 @@ The `raspberry-pi-3` profile sets this to
 `mkDefault`.
 
 `linux-rpi` is built from source against the vendor defconfig and is in no
-binary cache, so accepting it means an emulated aarch64 kernel compile — hours —
+binary cache, so accepting it means an emulated aarch64 kernel compile - hours -
 on every nixos-hardware bump. Mainline covers the Pi 3 B and substitutes from
 `cache.nixos.org`.
 
@@ -207,13 +207,13 @@ With `FDTDIR` set, U-Boot replaces the device tree the GPU firmware built. Every
 `dtparam` and `dtoverlay` in `config.txt` is therefore **discarded before Linux
 sees it**.
 
-So the usual Raspberry Pi tuning knobs are unavailable — `dtparam=sd_force_pio=on`,
+So the usual Raspberry Pi tuning knobs are unavailable - `dtparam=sd_force_pio=on`,
 `sd_overclock=25`, `dtoverlay=disable-bt` have no effect. Equivalent
 changes have to go through `hardware.deviceTree.overlays` or a kernel parameter
 instead.
 
 This also means `configtxt.settings.all.enable_uart` no longer enables the UART
-node in the device tree the kernel receives — the firmware-level clock fix still
+node in the device tree the kernel receives - the firmware-level clock fix still
 applies, but if serial is silent, this is the first thing to check.
 
 ## Firmware partition
@@ -227,7 +227,7 @@ hardware.raspberry-pi.firmware = {
 
 `enable` adds an activation script that repopulates the firmware partition on
 every `nixos-rebuild switch`. It is off by default, and needs `/boot/firmware`
-mounted — which is why `src/filesystems.nix` deliberately omits `noauto`. If it
+mounted - which is why `src/filesystems.nix` deliberately omits `noauto`. If it
 is not mounted the script logs `not a mounted partition, skipping firmware
 install` and the write silently lands on the root filesystem instead.
 
@@ -237,7 +237,7 @@ install` and the write silently lands on the root filesystem instead.
 emits `config.txt`'s `kernel=` line, only when this is enabled.
 
 Leave it off and the image gets no U-Boot and no `kernel=` line. The GPU
-firmware looks for `kernel8.img`, finds nothing, and the board does not boot —
+firmware looks for `kernel8.img`, finds nothing, and the board does not boot -
 while a `extlinux.conf` sits unread on the ext4 partition. The
 failure is silent and only visible over serial.
 
@@ -247,7 +247,7 @@ hardware.enableAllHardware = lib.mkForce false;
 ```
 
 `sd-image.nix` sets `hardware.enableAllHardware = true` for the installer use
-case. On this board that means all of `linux-firmware` — 780 MiB of firmware for
+case. On this board that means all of `linux-firmware` - 780 MiB of firmware for
 hardware a Pi 3 does not have, plus every SATA/PATA initrd module. The wireless
 firmware the board actually needs comes from the `raspberry-pi-3` profile's
 `hardware.firmware`.
@@ -258,7 +258,7 @@ plain `true`, and two unprioritised definitions conflict.
 
 It also removes the cause of the `makeModulesClosure { allowMissing = true; }`
 overlay in `flake.nix`, which exists to tolerate
-`modprobe: FATAL: Module ahci not found` — `ahci` being one of the modules this
+`modprobe: FATAL: Module ahci not found` - `ahci` being one of the modules this
 profile asks for.
 
 ## Console log level
@@ -282,7 +282,7 @@ hdmi-audio-codec.1.auto: HDMI: Unknown ELD version 0
 EDID has corrupt header
 ```
 
-Both are warning level, so neither reaches the console at 4 — they still go to
+Both are warning level, so neither reaches the console at 4 - they still go to
 the journal, nothing is hidden. The picture works regardless because DRM scores
 the EDID header rather than demanding an exact match, and carries on with a
 recovered or fallback EDID. `Unknown ELD version 0` is downstream: the HDMI
@@ -293,9 +293,9 @@ Raise this back to 7 when debugging an early boot problem.
 
 ## Other notes
 
-- `system.stateVersion = "26.05"` — first install was on 26.05. Do not bump it.
-- `zramSwap.enable` — 1 GB of RAM, and swapping to an SD card is miserable.
-- `boot.loader.generic-extlinux-compatible.configurationLimit = 3` — old
+- `system.stateVersion = "26.05"` - first install was on 26.05. Do not bump it.
+- `zramSwap.enable` - 1 GB of RAM, and swapping to an SD card is miserable.
+- `boot.loader.generic-extlinux-compatible.configurationLimit = 3` - old
   generations keep their kernel and initrd in `/boot` on the root partition,
   which adds up quickly on a small card.
 - No `hardware-configuration.nix`: there is nothing to scan. The profile covers
