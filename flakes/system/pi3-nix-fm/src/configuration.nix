@@ -35,7 +35,10 @@ in
 
   # === Profiles ===
 
-  modules.profiles.minimal.enable = true;
+  modules.profiles.minimal = {
+    enable = true;
+    rebuildable = false;
+  };
 
   # === Profiles ===
 
