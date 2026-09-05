@@ -33,6 +33,35 @@ in
 
 
 
+  # === Profiles ===
+
+  modules.profiles.minimal.enable = true;
+
+  # === Profiles ===
+
+
+  # === Networking ===
+
+  networking.hostName = hostname;
+
+  modules.hardware.networking.networkd.enable = true;
+  modules.hardware.networking.wireless.iwd.enable = true;
+
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
+
+  # Allow direct link connections
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    nssmdns6 = true;
+    publish = { enable = true; addresses = true; };
+  };
+
+  # === Networking ===
+
+
+
   # === Nix ===
 
   nix = {
@@ -55,25 +84,10 @@ in
     };
   };
 
-  # Nix Helper
-  programs.nh = {
-    enable = true;
-    package = pkgs-unstable.nh;
-  };
 
   system.stateVersion = "26.05";
 
   # === Nix ===
-
-
-
-
-  # === Build ===
-
-  # Disable building docs
-  documentation.enable = false;
-
-  # === Build ===
 
 
   # === Bootloader ===
@@ -134,43 +148,6 @@ in
   # === Memory ===
 
 
-  # === Networking ===
-
-  networking = {
-    hostName = hostname;
-
-    # Enable networking
-    networkmanager = {
-      enable = true;
-      package = pkgs.networkmanager;
-
-      # WiFi options
-      wifi = {
-        powersave = false;
-        backend = "iwd";
-      };
-    };
-
-    # Onboard WiFi. The `raspberry-pi-3` profile provides the brcmfmac firmware
-  };
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-
-  # === Networking ===
-
-
-  # === Security ===
-
-  security.polkit.enable = true;
-
-  # === Security ===
-
-
   # === Users ===
 
   # Gets users options from `usersData.users.<name>.settings`
@@ -222,23 +199,4 @@ in
   ];
 
   # === Global Environment ===
-
-
-  # === Strip Down ===
-
-  # Disable TTS daemon
-  services.speechd.enable = false;
-
-  # Only use 1 font package
-  fonts.enableDefaultPackages = false;
-  fonts.packages = [ pkgs.dejavu_fonts ];
-
-  # Don't store a copy of `<nixpkgs>`
-  nixpkgs.flake.setFlakeRegistry = false;
-  nixpkgs.flake.setNixPath = false;
-
-  # Disable rebuilding locally since this host would OOM anyway
-  system.tools.nixos-rebuild.enable = false;
-
-  # === Strip Down ===
 }
