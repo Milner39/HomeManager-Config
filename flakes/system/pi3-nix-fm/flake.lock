@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788612009,
-        "narHash": "sha256-xT8LHkXGQ2aiprnZ34XjBNY3Wz1Ky+5P2A17vdZgrbY=",
+        "lastModified": 1788716638,
+        "narHash": "sha256-V5Igjw+Hf95xgPNBzMuZCbRXwKT5hKwu+cPeNQvwNdM=",
         "owner": "Milner39",
         "repo": "nix-modules",
-        "rev": "af8a0fded2d6aac181d25357411109c0ee8c7fa9",
+        "rev": "7db50cef7765ecdad9e8661a2d4bbf027d56a878",
         "type": "github"
       },
       "original": {

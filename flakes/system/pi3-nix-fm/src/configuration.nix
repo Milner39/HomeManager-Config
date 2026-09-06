@@ -47,24 +47,13 @@ in
 
   networking.hostName = hostname;
 
-  modules.hardware.networking.networkd.enable = true;
-  modules.hardware.networking.wireless.iwd.enable = true;
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-
-  # Allow direct link connections
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    nssmdns6 = true;
-    openFirewall = true;
-
-    publish = { 
-      enable = true;
-      addresses = true;
-    };
+  modules.networking = {
+    backend.networkd.enable = true;
+    wireless.iwd.enable = true;
+    directLink.enable = true;
   };
+
+  services.openssh.enable = true;
 
   # === Networking ===
 

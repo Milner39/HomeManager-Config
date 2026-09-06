@@ -125,9 +125,6 @@ in
 
   # === Hardware ===
 
-  # For proprietary firmware (fix WiFi cards)
-  hardware.enableRedistributableFirmware = true;
-
   modules.hardware.video.intel = {
     enable = true;
   };
@@ -137,37 +134,15 @@ in
 
   # === Networking ===
 
-  networking = {
-    hostName = hostname;
+  networking.hostName = hostname;
 
-    # Enable networking
-    networkmanager = {
-      enable = true;
-      package = pkgs.networkmanager;
-
-      # WiFi options
-      wifi = {
-        powersave = false;
-        backend = "iwd";
-      };
-    };
+  modules.networking = {
+    backend.networkmanager.enable = true;
+    wireless.iwd.enable = true;
+    directLink.enable = true;
   };
 
-  # Enable the OpenSSH daemon.
   services.openssh.enable = true;
-
-  # Allow direct link connections
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    nssmdns6 = true;
-    openFirewall = true;
-
-    publish = { 
-      enable = true;
-      addresses = true;
-    };
-  };
 
   # === Networking ===
 
@@ -264,7 +239,6 @@ in
   environment.systemPackages = with pkgs; [
     # Version control
     git
-    gh
 
     # Browsers
     brave
