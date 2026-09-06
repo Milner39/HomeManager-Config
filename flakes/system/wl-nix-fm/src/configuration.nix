@@ -161,7 +161,12 @@ in
     enable = true;
     nssmdns4 = true;
     nssmdns6 = true;
-    publish = { enable = true; addresses = true; };
+    openFirewall = true;
+
+    publish = { 
+      enable = true;
+      addresses = true;
+    };
   };
 
   # === Networking ===
