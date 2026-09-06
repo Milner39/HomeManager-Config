@@ -156,11 +156,13 @@ in
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  # Allow direct link connections
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    nssmdns6 = true;
+    publish = { enable = true; addresses = true; };
+  };
 
   # === Networking ===
 
@@ -260,7 +262,6 @@ in
     gh
 
     # Browsers
-    firefox
     brave
 
     # Must haves
