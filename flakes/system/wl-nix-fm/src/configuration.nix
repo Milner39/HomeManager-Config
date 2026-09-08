@@ -40,9 +40,7 @@ in
 
   # === Hardware ===
 
-  modules.hardware.video.intel = {
-    enable = true;
-  };
+  modules.hardware.video.intel.enable = true;
 
   # === Hardware ===
 
