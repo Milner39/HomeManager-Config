@@ -31,6 +31,47 @@ in
 
 
 
+  # === Profiles ===
+
+  # None
+
+  # === Profiles ===
+
+
+  # === Hardware ===
+
+  modules.hardware.video.intel = {
+    enable = true;
+  };
+
+  # === Hardware ===
+
+
+  # === Networking ===
+
+  networking.hostName = hostname;
+
+  modules.networking = {
+    backend.networkmanager.enable = true;
+    wireless.iwd.enable = true;
+    directLink.enable = true;
+  };
+
+  services.openssh.enable = true;
+
+  # === Networking ===
+
+
+  # === Locale ===
+
+  # Use default UK settings
+  modules.locale.enable = true;
+
+  # === Locale ===
+
+
+
+
   # === Nix ===
 
   nix = {
@@ -123,30 +164,6 @@ in
   # === Kernel ===
 
 
-  # === Hardware ===
-
-  modules.hardware.video.intel = {
-    enable = true;
-  };
-
-  # === Hardware ===
-
-
-  # === Networking ===
-
-  networking.hostName = hostname;
-
-  modules.networking = {
-    backend.networkmanager.enable = true;
-    wireless.iwd.enable = true;
-    directLink.enable = true;
-  };
-
-  services.openssh.enable = true;
-
-  # === Networking ===
-
-
   # === Security ===
 
   security.polkit.enable = true;
@@ -162,35 +179,6 @@ in
     (args.usersData.users);
 
   # === Users ===
-
-
-  # === Locale ===
-
-  time.timeZone = "Europe/London";
-
-  i18n = let
-    locale = "en_GB.UTF-8";
-  in
-  {
-    # defaultCharset = "UTF-8";
-    defaultLocale = locale;
-    extraLocaleSettings = {
-      LC_ADDRESS = locale;
-      LC_IDENTIFICATION = locale;
-      LC_MEASUREMENT = locale;
-      LC_MONETARY = locale;
-      LC_NAME = locale;
-      LC_NUMERIC = locale;
-      LC_PAPER = locale;
-      LC_TELEPHONE = locale;
-      LC_TIME = locale;
-    };
-  };
-
-  # Configure console keyMap
-  console.keyMap = "uk";
-
-  # === Locale ===
 
 
   # === Fonts ===
